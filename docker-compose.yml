@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # FastAPI Service
+  fastapi:
+    build:
+      context: ./backend  # Ruta de tu código backend
+    container_name: fastapi
+    ports:
+      - "8000:8000"
+    depends_on:
+      - odoo-db
+    environment:
+      - DATABASE_URL=postgresql://odoo:odoo@odoo-db/odoo
+    volumes:
+      - ./backend:/app/backend
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
+    networks:
+      - tekoha_backend
+
+  # Odoo Database (Postgres)
+  odoo-db:
+    image: postgres:13
+    container_name: odoo-db
+    environment:
+      - POSTGRES_DB=odoo
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    networks:
+      - tekoha_backend
+
+  # Next.js Service (Frontend)
+  nextjs:
+    build:
+      context: ./frontend  # Ruta para tu frontend
+    container_name: nextjs
+    ports:
+      - "3000:3000"
+    depends_on:
+      - fastapi  # Esto asegura que FastAPI esté listo antes de Next.js
+    networks:
+      - tekoha_backend
+
+  # NGINX Service
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - nextjs
+      - fastapi
+    networks:
+      - tekoha_backend
+
+networks:
+  tekoha_backend:
+    driver: bridge
+
+volumes:
+  odoo-db-data:
