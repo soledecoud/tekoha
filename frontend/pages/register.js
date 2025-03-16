@@ -10,21 +10,23 @@ export default function Register() {
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       await axios.post('http://127.0.0.1:8000/api/v1/auth/register', {
         email,
-        firstName,
-        lastName,
-        username,
+        first_name: firstName, 
+        last_name: lastName,    
+        user: username,
         password,
       });
       router.push('/login');
     } catch (error) {
-      console.error('Error registrando usuario:', error);
+      setError(error.response?.data?.detail || 'Error registrando usuario');
     }
   };
 
@@ -36,6 +38,7 @@ export default function Register() {
   return (
     <Layout>
       <h1 className="text-4xl font-bold mb-8 text-center">Registro</h1>
+      {error && <p className="text-red-500 text-center">{error}</p>}
       <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md">
         <FormInput label="Correo Electrónico" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <FormInput label="Nombre" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} />

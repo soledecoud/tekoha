@@ -9,7 +9,7 @@ from alembic import context
 
 # Importa tu modelo Base
 from backend.app.core.database import Base
-from backend.app.models import user  # Asegúrate de importar todos los modelos
+from backend.app.models import user
 
 # Configuración de Alembic
 config = context.config
@@ -24,7 +24,8 @@ def run_migrations_offline():
     """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url, target_metadata=target_metadata, literal_binds=True
+        url=url, target_metadata=target_metadata, literal_binds=True, dialect_opts={"paramstyle": "named"},
+        version_table_schema="public"  # Specify your schema here
     )
 
     with context.begin_transaction():
@@ -39,7 +40,11 @@ def run_migrations_online():
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            version_table_schema="public"  # Specify your schema here
+        )
 
         with context.begin_transaction():
             context.run_migrations()
